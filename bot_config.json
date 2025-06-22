@@ -1,4 +1,6 @@
 {
-    "execution_frequency_minutes": 2,
-    "autosystem_path": "C:\\autosystem\\main.exe"
-} 
+    "execution_frequency_minutes": 5,
+    "autosystem_path": "C:\\autosystem\\main.exe",
+    "report_source_file": "C:\\Users\\Usuario\\relatorio.txt",
+    "report_dest_folder": "C:\\Teste programa"
+}

@@ -11,17 +11,25 @@ def load_config():
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, 'r') as f:
             config = json.load(f)
-            # Ensure autosystem_path exists, provide default if not
             if "autosystem_path" not in config:
-                config["autosystem_path"] = "C:\\autosystem\\main.exe" 
+                config["autosystem_path"] = "C:\\autosystem\\main.exe"
+            if "report_source_file" not in config:
+                config["report_source_file"] = "C:\\autosystem\\relatorios\\relatorio.txt"
+            if "report_dest_folder" not in config:
+                config["report_dest_folder"] = "C:\\destino\\relatorios"
             return config
-    return {"execution_frequency_minutes": 2, "autosystem_path": "C:\\autosystem\\main.exe"} # Default value
+    return {"execution_frequency_minutes": 2, "autosystem_path": "C:\\autosystem\\main.exe", "report_source_file": "C:\\autosystem\\relatorios\\relatorio.txt", "report_dest_folder": "C:\\destino\\relatorios"}
 
-def save_config(frequency, autosystem_path):
-    config = {"execution_frequency_minutes": frequency, "autosystem_path": autosystem_path}
+def save_config(frequency, autosystem_path, report_source_file, report_dest_folder):
+    config = {
+        "execution_frequency_minutes": frequency,
+        "autosystem_path": autosystem_path,
+        "report_source_file": report_source_file,
+        "report_dest_folder": report_dest_folder
+    }
     with open(CONFIG_FILE, 'w') as f:
         json.dump(config, f, indent=4)
-    messagebox.showinfo("Configuration Saved", f"Bot will now run every {frequency} minutes and use {autosystem_path} as AutoSystem executable.")
+    messagebox.showinfo("Configuration Saved", f"Bot will now run every {frequency} minutes, use {autosystem_path} as AutoSystem executable, copy {report_source_file} to {report_dest_folder}.")
 
 def start_bot():
     current_config = load_config()
@@ -61,13 +69,41 @@ def create_interface():
     browse_button = tk.Button(root, text="Browse", command=browse_autosystem_path)
     browse_button.pack(pady=5)
 
+    # Arquivo de origem
+    tk.Label(root, text="Arquivo de origem do relatório (X):").pack(pady=10)
+    report_source_file_entry = tk.Entry(root, width=50)
+    report_source_file_entry.insert(0, current_config["report_source_file"])
+    report_source_file_entry.pack(pady=5)
+    def browse_report_source_file():
+        file = filedialog.askopenfilename(title="Selecione o arquivo de origem do relatório (X)", filetypes=[("Arquivos TXT", "*.txt"), ("Todos os arquivos", "*.*")])
+        if file:
+            report_source_file_entry.delete(0, tk.END)
+            report_source_file_entry.insert(0, file)
+    browse_source_file_button = tk.Button(root, text="Selecionar Arquivo X", command=browse_report_source_file)
+    browse_source_file_button.pack(pady=5)
+
+    # Pasta de destino
+    tk.Label(root, text="Pasta de destino dos relatórios (Y):").pack(pady=10)
+    report_dest_entry = tk.Entry(root, width=50)
+    report_dest_entry.insert(0, current_config["report_dest_folder"])
+    report_dest_entry.pack(pady=5)
+    def browse_report_dest():
+        folder = filedialog.askdirectory(title="Selecione a pasta de destino dos relatórios (Y)")
+        if folder:
+            report_dest_entry.delete(0, tk.END)
+            report_dest_entry.insert(0, folder)
+    browse_dest_button = tk.Button(root, text="Selecionar Pasta Y", command=browse_report_dest)
+    browse_dest_button.pack(pady=5)
+
     def on_save():
         try:
             frequency = int(frequency_entry.get())
             if frequency <= 0:
                 raise ValueError("Frequency must be a positive integer.")
             autosystem_path = autosystem_path_entry.get()
-            save_config(frequency, autosystem_path)
+            report_source_file = report_source_file_entry.get()
+            report_dest_folder = report_dest_entry.get()
+            save_config(frequency, autosystem_path, report_source_file, report_dest_folder)
         except ValueError as e:
             messagebox.showerror("Invalid Input", str(e))
 
