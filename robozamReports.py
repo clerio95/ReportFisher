@@ -436,14 +436,14 @@ def exportar_relatorio(autosystem_path_arg):
         time.sleep(0.5)
 
         try:
-            logging.info("Enviando 'cf'...")
-            keyboard.send_keys("cf", pause=0.1)
+            logging.info("Enviando 'relatorio'...")
+            keyboard.send_keys("relatorio", pause=0.1)
             time.sleep(0.2)
             logging.info("Enviando TAB...")
             keyboard.send_keys("{TAB}", pause=0.1)
             time.sleep(0.2)
-            logging.info("Enviando '7418'...")
-            keyboard.send_keys("7418", pause=0.1)
+            logging.info("Enviando '123456'...")
+            keyboard.send_keys("123456", pause=0.1)
             time.sleep(0.2)
             logging.info("Enviando F5...")
             keyboard.send_keys("{F5}", pause=0.1)

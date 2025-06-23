@@ -4,6 +4,11 @@ import json
 import os
 import threading # Import threading
 from robozamReports import start_bot_logic # Import the new function
+import ctypes
+import time
+import pystray
+from PIL import Image
+import sys
 
 CONFIG_FILE = "bot_config.json"
 
@@ -31,17 +36,65 @@ def save_config(frequency, autosystem_path, report_source_file, report_dest_fold
         json.dump(config, f, indent=4)
     messagebox.showinfo("Configuration Saved", f"Bot will now run every {frequency} minutes, use {autosystem_path} as AutoSystem executable, copy {report_source_file} to {report_dest_folder}.")
 
+def prevent_sleep():
+    ES_CONTINUOUS = 0x80000000
+    ES_SYSTEM_REQUIRED = 0x00000001
+    ES_AWAYMODE_REQUIRED = 0x00000040  # Opcional, para Windows Media Center
+    while True:
+        ctypes.windll.kernel32.SetThreadExecutionState(
+            ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED
+        )
+        time.sleep(30)  # Chama a cada 30 segundos
+
+def hide_window(root):
+    root.withdraw()
+
+def show_window(root):
+    root.deiconify()
+    root.after(0, root.lift)
+
+def on_tray_restore(icon, root):
+    show_window(root)
+    icon.stop()
+
+def on_tray_exit(icon, root):
+    icon.stop()
+    root.quit()
+
+def create_tray_icon(root):
+    # Usa o mesmo ícone do executável
+    try:
+        image = Image.open('robot.ico')
+    except Exception:
+        # fallback: quadrado preto
+        image = Image.new('RGB', (64, 64), color='black')
+    menu = pystray.Menu(
+        pystray.MenuItem('Restaurar', lambda: on_tray_restore(icon, root)),
+        pystray.MenuItem('Sair', lambda: on_tray_exit(icon, root))
+    )
+    icon = pystray.Icon('Robozam', image, 'Robozam', menu)
+    # pystray roda em thread separada
+    threading.Thread(target=icon.run, daemon=True).start()
+    return icon
+
 def start_bot():
     current_config = load_config()
     try:
+        # Thread para impedir o repouso
+        sleep_thread = threading.Thread(target=prevent_sleep, daemon=True)
+        sleep_thread.start()
         # Start the bot logic in a new thread to keep the GUI responsive
         bot_thread = threading.Thread(target=start_bot_logic, args=(current_config["execution_frequency_minutes"], current_config["autosystem_path"]), daemon=True)
         bot_thread.start()
-        messagebox.showinfo("Bot Started", "The bot has been started in the background. Look for the icon in the system tray.")
+        # Esconde a janela principal e mostra o tray
+        hide_window(root)
+        create_tray_icon(root)
+        messagebox.showinfo("Bot Started", "O bot foi iniciado em background. O ícone está na bandeja do sistema.")
     except Exception as e:
         messagebox.showerror("Error", f"Failed to start bot: {e}")
 
 def create_interface():
+    global root
     root = tk.Tk()
     root.title("Bot Configuration")
 
