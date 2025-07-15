@@ -5,7 +5,7 @@ a = Analysis(
     ['config_interface.py'],
     pathex=[],
     binaries=[],
-    datas=[('bot_config.json', '.')],
+    datas=[],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

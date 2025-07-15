@@ -32,8 +32,8 @@ stop_notepad_monitor_event = threading.Event()
 
 # Parâmetros centralizados para fácil ajuste
 MONITOR_START_DELAY = 8  # segundos após início do main.exe
-MONITOR_TIME = 30        # duração do monitoramento em segundos
-MONITOR_POLL_INTERVAL = 0.1  # intervalo de polling em segundos
+MONITOR_TIME = 32        # duração do monitoramento em segundos
+MONITOR_POLL_INTERVAL = 0.3  # intervalo de polling em segundos
 
 def notepad_monitor_thread():
     logging.info("Iniciando thread de monitoramento do Bloco de Notas.")
@@ -245,25 +245,6 @@ def aggressive_close_notepad_on_txt(report_path=r"C:\autosystem\relatorios", pol
         logging.info("Monitoramento de arquivos txt encerrado.")
     threading.Thread(target=_monitor, daemon=True).start()
 
-def send_delayed_close_sequence(delay, log_prefix=""):
-    def _send():
-        if log_prefix:
-            logging.info(f"{log_prefix}Aguardando {delay} segundos para enviar sequência de fechamento...")
-        else:
-            logging.info(f"Aguardando {delay} segundos para enviar sequência de fechamento...")
-        time.sleep(delay)
-        logging.info("Enviando sequência fixa RIGHT ENTER ESC ESC ESC ENTER após delay...")
-        keyboard.send_keys("{RIGHT}", pause=0.1)
-        keyboard.send_keys("{ENTER}", pause=0.1)
-        keyboard.send_keys("{ESC}", pause=0.1)
-        keyboard.send_keys("{ESC}", pause=0.1)
-        keyboard.send_keys("{ESC}", pause=0.1)
-        keyboard.send_keys("{ENTER}", pause=0.1)
-        time.sleep(0.3)
-        stop_notepad_monitor_event.set()  # Sinaliza para parar o monitoramento
-    t = threading.Thread(target=_send, daemon=True)
-    t.start()
-
 def aggressive_monitor_and_close_notepad(start_delay=8, monitor_time=30, poll_interval=0.1):
     def _monitor():
         logging.info(f"Aguardando {start_delay}s após início do main.exe para iniciar monitoramento agressivo de Notepad em todo o Windows...")
@@ -384,9 +365,6 @@ def exportar_relatorio(autosystem_path_arg):
         # Inicia monitoramento agressivo para fechar o relatório assim que um txt surgir
         aggressive_close_notepad_on_txt(timeout=22)
 
-        # Dispara a thread para enviar a sequência após 24 segundos
-        send_delayed_close_sequence(18)
-
         max_startup_timeout = 45
         start_time = time.time()
         app = Application(backend="win32")
@@ -481,7 +459,9 @@ def exportar_relatorio(autosystem_path_arg):
                 keyboard.send_keys("{ESC}", pause=0.1)
                 time.sleep(1)
                 close_timeout = 5
-                close_start_time = time.time()
+                close_start_time = time.time()          
+
+                
                 while time.time() - close_start_time < close_timeout:
                     desktop = Desktop(backend="win32")
                     windows = [w for w in desktop.windows() if w.process_id() == process.pid and "Questão" in w.window_text() and w.is_visible()]
@@ -552,41 +532,9 @@ def exportar_relatorio(autosystem_path_arg):
             keyboard.send_keys("{1}", pause=0.1)
             keyboard.send_keys("{DOWN}", pause=0.1)
             keyboard.send_keys("{F5}", pause=0.1)
+            time.sleep(3)
         except Exception as e:
             logging.error(f"Erro ao navegar no menu: {e}")
-            return False
-
-        logging.info("Verificando a janela de parâmetros do relatório...")
-        report_window_timeout = 30
-        report_start_time = time.time()
-        report_window = None
-
-        while time.time() - report_start_time < report_window_timeout:
-            try:
-                desktop = Desktop(backend="win32")
-                windows = [w for w in desktop.windows() if w.process_id() == process.pid and w.is_visible() and "AutoSystem" in w.window_text()]
-                if windows:
-                    report_window = windows[0]
-                    logging.info(f"Janela de relatório encontrada: Título: {report_window.window_text()}, Handle: {report_window.handle}")
-                    break
-                logging.info("Procurando janela de relatório...")
-                time.sleep(1)
-            except Exception as e:
-                logging.error(f"Erro ao procurar janela de relatório: {e}")
-                time.sleep(1)
-
-        if report_window:
-            try:
-                app.connect(handle=report_window.handle)
-                report_dialog = app.window(handle=report_window.handle)
-                report_dialog.wait('enabled ready visible', timeout=5)
-                report_dialog.set_focus()
-                time.sleep(0.2)
-            except Exception as e:
-                logging.error(f"Erro ao acessar a janela de relatório: {e}")
-                return False
-        else:
-            logging.error("Janela de relatório não encontrada dentro do tempo limite de 30 segundos.")
             return False
 
         try:
@@ -597,138 +545,6 @@ def exportar_relatorio(autosystem_path_arg):
             keyboard.send_keys("{ENTER}", pause=0.1)
             keyboard.send_keys("{F5}", pause=0.1)
             
-            logging.info("Aguardando a janela 'Visualizar Impressão' abrir...")
-            report_window_timeout = 30
-            report_start_time = time.time()
-            report_window_found = False
-
-            while time.time() - report_start_time < report_window_timeout:
-                try:
-                    desktop = Desktop(backend="win32")
-                    windows = [w for w in desktop.windows() if w.process_id() == process.pid and w.is_visible() and "Visualizar Impressão" in w.window_text()]
-                    if windows:
-                        report_window = windows[0]
-                        logging.info(f"Janela 'Visualizar Impressão' encontrada: {report_window.window_text()}")
-                        report_window_found = True
-                        break
-                    logging.info("Aguardando janela 'Visualizar Impressão'...")
-                    time.sleep(1)
-                except Exception as e:
-                    logging.error(f"Erro ao procurar janela 'Visualizar Impressão': {e}")
-                    time.sleep(1)
-
-            if not report_window_found:
-                logging.error("Janela 'Visualizar Impressão' não encontrada dentro do tempo limite.")
-                return False
-
-            try:
-                app.connect(handle=report_window.handle)
-                report_dialog = app.window(handle=report_window.handle)
-                report_dialog.wait('enabled ready visible', timeout=5)
-                report_dialog.set_focus()
-                time.sleep(1)
-            except Exception as e:
-                logging.error(f"Erro ao focalizar na janela 'Visualizar Impressão': {e}")
-                return False
-
-            logging.info("Executando sequência de teclas na janela 'Visualizar Impressão'...")
-            keyboard.send_keys("{TAB}", pause=0.1)
-            keyboard.send_keys("{TAB}", pause=0.1)
-            keyboard.send_keys("{TAB}", pause=0.1)
-            keyboard.send_keys("{ENTER}", pause=0.1)
-            keyboard.send_keys("{F5}", pause=0.1)
-            logging.info("Sequência de teclas concluída.")
-            
-            logging.info("Verificando janela 'Informação'...")
-            info_window_timeout = 1
-            info_start_time = time.time()
-            
-            while time.time() - info_start_time < info_window_timeout:
-                try:
-                    desktop = Desktop(backend="win32")
-                    windows = [w for w in desktop.windows() if w.process_id() == process.pid and w.is_visible() and "Informação" in w.window_text()]
-                    if windows:
-                        info_window = windows[0]
-                        logging.info(f"Janela 'Informação' encontrada, fechando...")
-                        keyboard.send_keys("{ENTER}", pause=0.1)
-                        time.sleep(0.2)
-                        # Aguarda 2 segundos e fecha o Bloco de Notas
-                        logging.info("Aguardando 2 segundos para fechamento do Bloco de Notas após janela 'Informação'...")
-                        time.sleep(2)
-                        close_notepad()
-                        break
-                    time.sleep(0.2)
-                except Exception as e:
-                    logging.error(f"Erro ao verificar janela 'Informação': {e}")
-                    time.sleep(0.2)
-
-            logging.info("Verificando janela 'Erro'...")
-            error_window_timeout = 1
-            error_start_time = time.time()
-            
-            while time.time() - error_start_time < error_window_timeout:
-                try:
-                    desktop = Desktop(backend="win32")
-                    windows = [w for w in desktop.windows() if w.process_id() == process.pid and w.is_visible() and "Erro" in w.window_text()]
-                    if windows:
-                        error_window = windows[0]
-                        logging.info(f"Janela 'Erro' encontrada, fechando...")
-                        keyboard.send_keys("{ENTER}", pause=0.1)
-                        time.sleep(0.2)
-                        break
-                    time.sleep(0.2)
-                except Exception as e:
-                    logging.error(f"Erro ao verificar janela 'Erro': {e}")
-                    time.sleep(0.2)
-
-            logging.info("Verificando janela 'Conferência de Caixa'...")
-            caixa_window_timeout = 1
-            caixa_start_time = time.time()
-            
-            while time.time() - caixa_start_time < caixa_window_timeout:
-                try:
-                    desktop = Desktop(backend="win32")
-                    windows = [w for w in desktop.windows() if w.process_id() == process.pid and w.is_visible() and "Conferência de Caixa" in w.window_text()]
-                    if windows:
-                        caixa_window = windows[0]
-                        logging.info(f"Janela 'Conferência de Caixa' encontrada, fechando...")
-                        keyboard.send_keys("{ESC}", pause=0.1)
-                        time.sleep(0.2)
-                        break
-                    time.sleep(0.2)
-                except Exception as e:
-                    logging.error(f"Erro ao verificar janela 'Conferência de Caixa': {e}")
-                    time.sleep(0.2)
-
-            notepad_closed = close_notepad()
-            if not notepad_closed:
-                logging.error("Falha ao fechar a janela do Bloco de Notas. Programa pode não finalizar corretamente (fechamento forçado). Aguarde mais tempo para o sistema processar.")
-                time.sleep(0.5)
-            else:
-                logging.info("Bloco de Notas fechado normalmente.")
-                time.sleep(0.2)
-            # Focaliza na janela 'Visualizar Impressão' e envia a nova sequência
-            try:
-                app.connect(handle=report_window.handle)
-                report_dialog = app.window(handle=report_window.handle)
-                report_dialog.wait('enabled ready visible', timeout=3)
-                report_dialog.set_focus()
-                time.sleep(0.1)
-                logging.info("Enviando sequência ESC ESC ESC ENTER na janela 'Visualizar Impressão'...")
-                keyboard.send_keys("{ESC}", pause=0.1)
-                keyboard.send_keys("{ESC}", pause=0.1)
-                keyboard.send_keys("{ESC}", pause=0.1)
-                keyboard.send_keys("{ENTER}", pause=0.1)
-                time.sleep(0.3)
-            except Exception as e:
-                logging.error(f"Erro ao focalizar/enviar teclas para 'Visualizar Impressão': {e}")
-            
-            logging.info("Aguardando geração do relatório...")
-            time.sleep(1)
-            
-            logging.info("Processo concluído. Verifique o relatório em C:\autosystem\relatorios.")
-            # Após a geração do relatório e fechamento do Notepad, aguardar 3 segundos antes de copiar o arquivo de origem
-            time.sleep(3)
             try:
                 if os.path.exists(report_source_file):
                     if not os.path.exists(report_dest_folder):
@@ -858,3 +674,210 @@ def close_txt_notepad_after_delay(report_path=r"C:\autosystem\relatorios", delay
             logging.info(f"Pasta de relatórios não encontrada: {report_path}")
     import threading
     threading.Thread(target=_check_and_close, daemon=True).start()
+
+# --- NOVAS FUNÇÕES PARA ORGANIZAÇÃO SEQUENCIAL E ASSÍNCRONA ---
+
+def parte_1_login(app, process):
+    # Mantém o login como está (código já existente)
+    # Retorna True se login ok, False se erro
+    try:
+        logging.info("Enviando 'relatorio'...")
+        keyboard.send_keys("relatorio", pause=0.1)
+        time.sleep(0.2)
+        logging.info("Enviando TAB...")
+        keyboard.send_keys("{TAB}", pause=0.1)
+        time.sleep(0.2)
+        logging.info("Enviando '123456'...")
+        keyboard.send_keys("123456", pause=0.1)
+        time.sleep(0.2)
+        logging.info("Enviando F5...")
+        keyboard.send_keys("{F5}", pause=0.1)
+        time.sleep(5)
+        return True
+    except Exception as e:
+        logging.error(f"Erro ao enviar teclas de login: {e}")
+        return False
+
+def parte_2_aguarda_responsividade(app, process):
+    # Aguarda janela 'Questão' ou timeout de 120s
+    logging.info("Aguardando responsividade da página principal (janela 'Questão' ou timeout de 120s)...")
+    questao_timeout = 120
+    questao_start_time = time.time()
+    while time.time() - questao_start_time < questao_timeout:
+        try:
+            desktop = Desktop(backend="win32")
+            windows = [w for w in desktop.windows() if w.process_id() == process.pid and "Questão" in w.window_text() and w.is_visible()]
+            if windows:
+                questao_window = windows[0]
+                logging.info(f"Janela 'Questão' encontrada: Título: {questao_window.window_text()}, Handle: {questao_window.handle}")
+                try:
+                    app.connect(handle=questao_window.handle)
+                    questao_dialog = app.window(handle=questao_window.handle)
+                    questao_dialog.wait('enabled ready visible', timeout=5)
+                    questao_dialog.set_focus()
+                    time.sleep(0.2)
+                    logging.info("Enviando ESC para fechar a janela 'Questão'...")
+                    keyboard.send_keys("{ESC}", pause=0.1)
+                    time.sleep(1)
+                except Exception as e:
+                    logging.error(f"Erro ao fechar a janela 'Questão': {e}")
+                break
+            time.sleep(1)
+        except Exception as e:
+            logging.error(f"Erro ao procurar janela 'Questão': {e}")
+            time.sleep(1)
+    else:
+        logging.info("Janela 'Questão' não encontrada em 120s. Prosseguindo...")
+    return True
+
+def parte_3_sequencia_teclas(app, process):
+    # Executa a sequência de teclas para gerar e salvar o relatório
+    import pywinauto.keyboard as kb
+    def alt_f_sequence():
+        logging.info("Segurando ALT e pressionando F 5 vezes em 3 segundos...")
+        kb.send_keys('{VK_MENU down}')  # ALT down
+        for i in range(5):
+            logging.info(f"Pressionando F com ALT segurado ({i+1}/5)...")
+            kb.send_keys('F')
+            time.sleep(3/5)
+        kb.send_keys('{VK_MENU up}')  # ALT up
+        logging.info("Liberando ALT...")
+        time.sleep(0.5)
+    def check_and_handle_restricao():
+        try:
+            desktop = Desktop(backend="win32")
+            restricao_windows = [w for w in desktop.windows() if "RESTRIÇÃO ENCONTRADA" in w.window_text().upper() and w.is_visible()]
+            if restricao_windows:
+                logging.warning("Janela 'RESTRIÇÃO ENCONTRADA' detectada! Fechando com ESC e reiniciando sequência...")
+                logging.info("Enviando ESC para fechar 'RESTRIÇÃO ENCONTRADA'...")
+                keyboard.send_keys("{ESC}", pause=0.1)
+                time.sleep(0.5)
+                return True
+        except Exception as e:
+            logging.error(f"Erro ao verificar janela 'RESTRIÇÃO ENCONTRADA': {e}")
+        return False
+    try:
+        while True:
+            logging.info("Iniciando sequência de teclas para gerar relatório...")
+            alt_f_sequence()
+            logging.info("Enviando UP...")
+            keyboard.send_keys("{UP}", pause=0.1)
+            if check_and_handle_restricao():
+                continue
+            logging.info("Enviando RIGHT...")
+            keyboard.send_keys("{RIGHT}", pause=0.1)
+            if check_and_handle_restricao():
+                continue
+            for i in range(5):
+                logging.info(f"Enviando UP {i+1}/5...")
+                keyboard.send_keys("{UP}", pause=0.1)
+                if check_and_handle_restricao():
+                    break
+            else:
+                logging.info("Enviando ENTER...")
+                keyboard.send_keys("{ENTER}", pause=0.1)
+                time.sleep(1.5)
+                logging.info("Enviando 1...")
+                keyboard.send_keys("1", pause=0.1)
+                for i in range(5):
+                    logging.info(f"Enviando DOWN {i+1}/5...")
+                    keyboard.send_keys("{DOWN}", pause=0.1)
+                    if check_and_handle_restricao():
+                        break
+                else:
+                    logging.info("Enviando F5...")
+                    keyboard.send_keys("{F5}", pause=0.1)
+                    time.sleep(5)
+                    for i in range(3):
+                        logging.info(f"Enviando TAB {i+1}/3...")
+                        keyboard.send_keys("{TAB}", pause=0.1)
+                        if check_and_handle_restricao():
+                            break
+                    else:
+                        logging.info("Enviando ENTER...")
+                        keyboard.send_keys("{ENTER}", pause=0.1)
+                        logging.info("Enviando F5...")
+                        keyboard.send_keys("{F5}", pause=0.1)
+                        time.sleep(1)
+                        logging.info("Enviando ENTER...")
+                        keyboard.send_keys("{ENTER}", pause=0.1)
+                        logging.info("Sequência de teclas para relatório concluída.")
+                        return True
+                continue
+            continue
+    except Exception as e:
+        logging.error(f"Erro na sequência de teclas do relatório: {e}")
+        return False
+
+def fechar_autosystem_e_notepad(process):
+    # Aguarda 10s, envia ESC ESC ESC ENTER, força kill se necessário
+    time.sleep(10)
+    logging.info("Enviando sequência de fechamento do AutoSystem...")
+    try:
+        keyboard.send_keys("{ESC}", pause=0.1)
+        keyboard.send_keys("{ESC}", pause=0.1)
+        keyboard.send_keys("{ESC}", pause=0.1)
+        keyboard.send_keys("{ENTER}", pause=0.1)
+        time.sleep(2)
+    except Exception as e:
+        logging.error(f"Erro ao enviar sequência de fechamento: {e}")
+    # Verifica se processo ainda está aberto
+    try:
+        if process and psutil.pid_exists(process.pid):
+            logging.info("Processo AutoSystem ainda ativo, forçando encerramento...")
+            terminate_autosystem(process)
+    except Exception as e:
+        logging.error(f"Erro ao forçar encerramento do AutoSystem: {e}")
+
+# --- LOOP PRINCIPAL DO BOT ---
+def ciclo_bot(execution_frequency, autosystem_path):
+    while True:
+        # Limpeza prévia
+        for proc in psutil.process_iter(['pid', 'name']):
+            try:
+                if proc.name().lower() == "notepad.exe":
+                    proc.terminate()
+                    proc.wait(timeout=5)
+                elif proc.name().lower() == "main.exe":
+                    proc.terminate()
+                    proc.wait(timeout=5)
+            except Exception:
+                pass
+        process = subprocess.Popen(autosystem_path)
+        app = Application(backend="win32")
+        # Parte 1: Login
+        if not parte_1_login(app, process):
+            fechar_autosystem_e_notepad(process)
+            continue
+        # Parte 2: Responsividade
+        if not parte_2_aguarda_responsividade(app, process):
+            fechar_autosystem_e_notepad(process)
+            continue
+        # Parte 3: Sequência de teclas
+        if not parte_3_sequencia_teclas(app, process):
+            fechar_autosystem_e_notepad(process)
+            continue
+        # Fechamento do programa
+        fechar_autosystem_e_notepad(process)
+        # Aguarda até o próximo ciclo
+        logging.info(f"Aguardando {execution_frequency} minutos para o próximo ciclo...")
+        time.sleep(execution_frequency * 60)
+
+# --- MAIN ---
+def main():
+    CONFIG_FILE = "bot_config.json"
+    def load_config():
+        if os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE, 'r') as f:
+                config = json.load(f)
+                if "autosystem_path" not in config:
+                    config["autosystem_path"] = "C:\\autosystem\\main.exe"
+                return config
+        return {"execution_frequency_minutes": 2, "autosystem_path": "C:\\autosystem\\main.exe"}
+    config = load_config()
+    execution_frequency = config["execution_frequency_minutes"]
+    autosystem_path = config["autosystem_path"]
+    ciclo_bot(execution_frequency, autosystem_path)
+
+if __name__ == "__main__":
+    main()

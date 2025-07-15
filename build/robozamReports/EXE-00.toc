@@ -1,6 +1,6 @@
 ('C:\\Fullstack Dev Projetos\\Projetos Posto\\Robozam - '
- 'Relatorios\\dist\\robozamReports.exe',
- True,
+ 'Relatorios\\robozamReports.exe',
+ False,
  False,
  False,
  ['C:\\Fullstack Dev Projetos\\Projetos Posto\\Robozam - '
@@ -250,33 +250,33 @@
    'C:\\Fullstack Dev Projetos\\Projetos Posto\\Robozam - '
    'Relatorios\\venv32\\Lib\\site-packages\\Pythonwin\\mfc140u.dll',
    'BINARY'),
-  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\METADATA',
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\top_level.txt',
    'C:\\Fullstack Dev Projetos\\Projetos Posto\\Robozam - '
-   'Relatorios\\venv32\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\METADATA',
-   'DATA'),
-  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\WHEEL',
-   'C:\\Fullstack Dev Projetos\\Projetos Posto\\Robozam - '
-   'Relatorios\\venv32\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\WHEEL',
-   'DATA'),
-  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\INSTALLER',
-   'C:\\Fullstack Dev Projetos\\Projetos Posto\\Robozam - '
-   'Relatorios\\venv32\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\INSTALLER',
+   'Relatorios\\venv32\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\top_level.txt',
    'DATA'),
   ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\RECORD',
    'C:\\Fullstack Dev Projetos\\Projetos Posto\\Robozam - '
    'Relatorios\\venv32\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\RECORD',
    'DATA'),
-  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\REQUESTED',
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\METADATA',
    'C:\\Fullstack Dev Projetos\\Projetos Posto\\Robozam - '
-   'Relatorios\\venv32\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\REQUESTED',
-   'DATA'),
-  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\top_level.txt',
-   'C:\\Fullstack Dev Projetos\\Projetos Posto\\Robozam - '
-   'Relatorios\\venv32\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\top_level.txt',
+   'Relatorios\\venv32\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\METADATA',
    'DATA'),
   ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\LICENSE',
    'C:\\Fullstack Dev Projetos\\Projetos Posto\\Robozam - '
    'Relatorios\\venv32\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\LICENSE',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\REQUESTED',
+   'C:\\Fullstack Dev Projetos\\Projetos Posto\\Robozam - '
+   'Relatorios\\venv32\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\REQUESTED',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\INSTALLER',
+   'C:\\Fullstack Dev Projetos\\Projetos Posto\\Robozam - '
+   'Relatorios\\venv32\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\INSTALLER',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\WHEEL',
+   'C:\\Fullstack Dev Projetos\\Projetos Posto\\Robozam - '
+   'Relatorios\\venv32\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.0.0.dist-info\\WHEEL',
    'DATA'),
   ('setuptools\\_vendor\\jaraco\\text\\Lorem ipsum.txt',
    'C:\\Fullstack Dev Projetos\\Projetos Posto\\Robozam - '
@@ -290,10 +290,10 @@
  [],
  False,
  False,
- 1750627630,
- [('run.exe',
+ 1752594167,
+ [('runw.exe',
    'C:\\Fullstack Dev Projetos\\Projetos Posto\\Robozam - '
-   'Relatorios\\venv32\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\run.exe',
+   'Relatorios\\venv32\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\runw.exe',
    'EXECUTABLE')],
  'C:\\Program '
  'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\python312.dll')
